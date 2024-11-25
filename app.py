@@ -56,19 +56,28 @@ nb_jours = st.number_input("Nombre de jours :", min_value=1, value=1)
 # Adding cities and nights
 st.subheader("Ajouter des villes et le nombre de nuits")
 villes_nuits = {}
-while True:
-    ville = st.text_input("Ville (ex: Amman) :", "")
-    nuits = st.number_input("Nombre de nuits :", min_value=0, value=1)
-    
-    if st.button("Ajouter Ville"):
-        if ville:
-            villes_nuits[ville] = nuits
-            st.success(f"Ville {ville} avec {nuits} nuits ajoutée.")
-        else:
-            st.error("Veuillez entrer une ville.")
-    
-    if st.button("Terminer l'ajout de villes"):
-        break
+if 'villes_nuits' not in st.session_state:
+    st.session_state.villes_nuits = []
+
+# Input fields for cities
+for i in range(len(st.session_state.villes_nuits)):
+    ville = st.text_input(f"Ville #{i + 1} (ex: Amman) :", st.session_state.villes_nuits[i][0])
+    nuits = st.number_input(f"Nombre de nuits pour {ville} :", min_value=0, value=st.session_state.villes_nuits[i][1])
+
+    if st.button(f"Mettre à jour {ville}"):
+        st.session_state.villes_nuits[i] = (ville, nuits)
+        st.success(f"Ville {ville} mise à jour avec {nuits} nuits.")
+
+# Add new city
+new_ville = st.text_input("Ajouter une nouvelle ville (ex: Amman) :", "")
+new_nuits = st.number_input("Nombre de nuits :", min_value=0, value=1)
+
+if st.button("Ajouter Ville"):
+    if new_ville:
+        st.session_state.villes_nuits.append((new_ville, new_nuits))
+        st.success(f"Ville {new_ville} avec {new_nuits} nuits ajoutée.")
+    else:
+        st.error("Veuillez entrer une ville.")
 
 # Guide option
 choix_guide = st.radio("Souhaitez-vous un guide ?", ("Oui", "Non")) == "Oui"
@@ -80,6 +89,6 @@ prix_repas = st.number_input("Prix par repas :", min_value=0.0, value=10.0)
 
 # Button to calculate the cost
 if st.button("Calculer Tarif"):
-    cout_total, tarif_par_personne = calcul_tarif(nb_pax, nb_jours, villes_nuits, choix_guide, nb_jours_guide, nb_repas, prix_repas)
+    cout_total, tarif_par_personne = calcul_tarif(nb_pax, nb_jours, dict(st.session_state.villes_nuits), choix_guide, nb_jours_guide, nb_repas, prix_repas)
     st.success(f"Tarif total : {cout_total:.2f} €")
     st.success(f"Tarif par personne : {tarif_par_personne:.2f} €")
